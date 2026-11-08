@@ -26,7 +26,10 @@ on:
 
 env:
   OFFICIAL_TAG: ${{ github.event.inputs.official_tag || 'v1.9.2' }}
-  LX_ROOT: ${{ runner.temp }}/lx
+  # 注意：runner 上下文不允许出现在 workflow 级 / job 级 env 中，
+  # 否则 GitHub 静态校验会报 "Unrecognized named-value: 'runner'"。
+  # 这里改用固定绝对路径（macOS runner 上 /tmp 可写且 job 内稳定）。
+  LX_ROOT: /tmp/lx-official-ios-build
 
 jobs:
   build:
@@ -729,7 +732,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: LxMusicMobile-ios14-unsigned-ipa
-          path: ${{ runner.temp }}/lx/ipa/LxMusicMobile-ios14-unsigned.ipa
+          path: /tmp/lx-official-ios-build/ipa/LxMusicMobile-ios14-unsigned.ipa
           retention-days: 14
           if-no-files-found: error
 
@@ -739,8 +742,8 @@ jobs:
         with:
           name: build-diagnostics
           path: |
-            ${{ runner.temp }}/lx/*.log
-            ${{ runner.temp }}/lx/adapter/patch_official_ios.py
+            /tmp/lx-official-ios-build/*.log
+            /tmp/lx-official-ios-build/adapter/patch_official_ios.py
           if-no-files-found: ignore
 
       - name: 完成提示
